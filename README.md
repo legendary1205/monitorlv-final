@@ -27,15 +27,13 @@ cd monitorlv
 chmod +x install.sh
 ./install.sh
 python3 run_all.py
+```
+
+
+❌ حذف	Remove a monitored server
+📋 لیست	View all monitored servers
 
 ---
-Command | Description
-/panel | Open the inline control panel
-➕ افزودن | Add new server by IP + Hostname
-❌ حذف | Remove a monitored server
-📋 لیست | View all monitored servers
-
-
 🖥 Web UI
 Runs on: http://yourserver:9000
 
@@ -44,11 +42,10 @@ Runs on: http://yourserver:9000
 ⚠️ Yellow = Pending
 
 ❌ Red = Down
+---
 
 📁 Project Structure
-bash
-Copy
-Edit
+```bash
 monitorlv/
 │
 ├── bot.py              # Starts Telegram bot
@@ -66,3 +63,5 @@ monitorlv/
 └── README.md
 📜 License
 MIT License — do what you want 😉
+
+```
