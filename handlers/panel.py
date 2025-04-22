@@ -1,58 +1,30 @@
-# handlers/panel.py
+# bot.py
 
-from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
-from telegram.ext import ContextTypes
-from config import ADMIN_ID
+from telegram.ext import (
+    Application, CommandHandler, CallbackQueryHandler, MessageHandler, filters
+)
+from config import BOT_TOKEN
+from handlers.panel import panel_handler, panel_callback
+from handlers.ping import handle_ping_action, handle_ping_message
+from handlers.traffic import handle_traffic_action, handle_traffic_message
+from handlers.bandwidth import handle_bandwidth_action, handle_bandwidth_message
 
-async def panel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    # فقط ادمین اجازه داره پنل رو ببینه
-    if update.effective_user.id != ADMIN_ID:
-        await update.message.reply_text("⛔️ شما دسترسی ندارید.")
-        return
+def main():
+    app = Application.builder().token(BOT_TOKEN).build()
 
-    keyboard = [
-        [InlineKeyboardButton("📶 مانیتور پینگ", callback_data="monitor_ping")],
-        [InlineKeyboardButton("📊 مانیتور ترافیک", callback_data="monitor_traffic")],
-        [InlineKeyboardButton("📡 مانیتور پهنای باند", callback_data="monitor_bandwidth")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("🎛 لطفاً مانیتور مورد نظر را انتخاب کنید:", reply_markup=reply_markup)
+    # فرمان اصلی پنل
+    app.add_handler(CommandHandler("panel", panel_handler))
+    app.add_handler(CallbackQueryHandler(panel_callback))
+    app.add_handler(CallbackQueryHandler(handle_ping_action, pattern="^ping_"))
+    app.add_handler(CallbackQueryHandler(handle_traffic_action, pattern="^traffic_"))
+    app.add_handler(CallbackQueryHandler(handle_bandwidth_action, pattern="^bandwidth_"))
 
-async def panel_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    query = update.callback_query
-    await query.answer()
-    data = query.data
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ping_message))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_traffic_message))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_bandwidth_message))
 
-    if data.startswith("monitor_"):
-        kind = data.split("_")[1]
-        await send_subpanel(query, kind)
-    elif data == "panel":
-        # بازگشت به پنل اصلی
-        await query.edit_message_text("🎛 لطفاً مانیتور مورد نظر را انتخاب کنید:", reply_markup=get_main_panel())
+    print("🤖 Bot is running...")
+    app.run_polling()  # اجرای ساده بدون asyncio
 
-def get_main_panel():
-    keyboard = [
-        [InlineKeyboardButton("📶 مانیتور پینگ", callback_data="monitor_ping")],
-        [InlineKeyboardButton("📊 مانیتور ترافیک", callback_data="monitor_traffic")],
-        [InlineKeyboardButton("📡 مانیتور پهنای باند", callback_data="monitor_bandwidth")],
-    ]
-    return InlineKeyboardMarkup(keyboard)
+# توجه: این بار دیگه از asyncio.run(main()) استفاده نمی‌کنیم
 
-async def send_subpanel(query, kind):
-    title_map = {
-        "ping": "پینگ",
-        "traffic": "ترافیک",
-        "bandwidth": "پهنای باند"
-    }
-
-    keyboard = [
-        [InlineKeyboardButton("➕ افزودن", callback_data=f"{kind}_add")],
-        [InlineKeyboardButton("❌ حذف", callback_data=f"{kind}_remove")],
-        [InlineKeyboardButton("📋 لیست", callback_data=f"{kind}_list")],
-        [InlineKeyboardButton("🔙 بازگشت", callback_data="panel")],
-    ]
-    reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(
-        f"🎛 عملیات مورد نظر برای مانیتور {title_map.get(kind, kind)} را انتخاب کنید:",
-        reply_markup=reply_markup
-    )
