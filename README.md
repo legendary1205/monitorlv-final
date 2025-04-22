@@ -39,6 +39,7 @@ Command	Description
 
 ---
 🖥 Web UI
+
 Runs on: http://yourserver:9000
 
 ✅ Green = Active
@@ -46,8 +47,10 @@ Runs on: http://yourserver:9000
 ⚠️ Yellow = Pending
 
 ❌ Red = Down
+
 ---
 
+---
 📁 Project Structure
 ```bash
 monitorlv/
