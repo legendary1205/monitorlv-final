@@ -22,8 +22,8 @@
 ## 🔧 Installation (Ubuntu)
 
 ```bash
-git clone https://github.com/yourusername/monitorlv.git
-cd monitorlv
+git clone https://github.com/legendary1205/monitorlv-final.git
+cd monitorlv-final
 chmod +x install.sh
 ./install.sh
 python3 run_all.py
