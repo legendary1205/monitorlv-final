@@ -29,7 +29,11 @@ chmod +x install.sh
 python3 run_all.py
 ```
 
+💬 Telegram Bot Commands
 
+Command	Description
+/panel	Open the inline control panel
+➕ افزودن	Add new server by IP + Hostname
 ❌ حذف	Remove a monitored server
 📋 لیست	View all monitored servers
 
