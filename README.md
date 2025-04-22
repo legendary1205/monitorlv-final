@@ -28,6 +28,7 @@ chmod +x install.sh
 ./install.sh
 python3 run_all.py
 
+---
 Command | Description
 /panel | Open the inline control panel
 ➕ افزودن | Add new server by IP + Hostname
