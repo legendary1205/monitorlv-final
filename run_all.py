@@ -13,9 +13,10 @@ async def main():
     threading.Thread(target=run_flask, daemon=True).start()
 
     await asyncio.gather(
-        run_bot(),          # اجرای async ربات
-        monitor_loop()      # اجرای async مانیتور
+        run_bot(),         # اجرای صحیح bot
+        monitor_loop()     # اجرای async مانیتورینگ
     )
 
 if __name__ == "__main__":
     asyncio.run(main())
+
