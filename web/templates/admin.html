@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="bg-sky-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <title>پنل مدیریت مانیتورینگ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        // فعال‌سازی دارک مود بر اساس localStorage
+        if (localStorage.getItem("darkMode") === "true") {
+            document.documentElement.classList.add("dark");
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-6">
+
+    <!-- سوییچ دارک مود -->
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">🎛 پنل مدیریت مانیتورینگ</h1>
+        <button onclick="toggleDarkMode()" class="px-3 py-1 rounded bg-sky-600 text-white dark:bg-yellow-500">
+            تغییر تم
+        </button>
+    </div>
+
+    <!-- فرم افزودن سرور -->
+    <form action="/admin/add" method="post" class="bg-white dark:bg-gray-800 shadow rounded-lg p-4 mb-6">
+        <div class="grid md:grid-cols-4 gap-4">
+            <input name="ip" type="text" placeholder="IP" required class="input">
+            <input name="hostname" type="text" placeholder="هاست‌نیم" required class="input">
+            <select name="type" class="input">
+                <option value="ping">پینگ</option>
+                <option value="traffic">ترافیک</option>
+                <option value="bandwidth">پهنای باند</option>
+            </select>
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white rounded px-4 py-2">
+                افزودن سرور
+            </button>
+        </div>
+    </form>
+
+    <!-- جدول سرورها -->
+    <div class="space-y-8">
+        {% for category in ['ping', 'traffic', 'bandwidth'] %}
+            <div>
+                <h2 class="text-xl font-semibold text-sky-700 dark:text-sky-300 mb-2">
+                    📌 مانیتور {{ 'پینگ' if category == 'ping' else 'ترافیک' if category == 'traffic' else 'پهنای باند' }}
+                </h2>
+                <table class="w-full border-collapse bg-white dark:bg-gray-800 rounded shadow">
+                    <thead>
+                        <tr class="bg-sky-600 text-white dark:bg-sky-700">
+                            <th class="p-2">شناسه</th>
+                            <th class="p-2">IP</th>
+                            <th class="p-2">نام</th>
+                            <th class="p-2">وضعیت</th>
+                            <th class="p-2">عملیات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for host in hosts if host.type == category %}
+                        <tr class="border-t border-gray-200 dark:border-gray-700">
+                            <td class="p-2 font-mono text-xs">{{ host.id }}</td>
+                            <td class="p-2">{{ host.ip }}</td>
+                            <td class="p-2">{{ host.hostname }}</td>
+                            <td class="p-2">
+                                {% if host.status == 'فعال' %}
+                                    <span class="text-green-600 font-semibold">فعال</span>
+                                {% elif host.status == 'غیرفعال' %}
+                                    <span class="text-red-600 font-semibold">غیرفعال</span>
+                                {% else %}
+                                    <span class="text-yellow-500 font-semibold">pending</span>
+                                {% endif %}
+                            </td>
+                            <td class="p-2">
+                                <form action="/admin/delete" method="post">
+                                    <input type="hidden" name="id" value="{{ host.id }}">
+                                    <button type="submit" class="text-red-500 hover:underline">حذف</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle("dark");
+            localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
+        }
+    </script>
+</body>
+</html>
