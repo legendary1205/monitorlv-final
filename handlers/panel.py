@@ -1,13 +1,10 @@
-# handlers/panel.py
-
 from telegram import Update, InlineKeyboardMarkup, InlineKeyboardButton
 from telegram.ext import ContextTypes
 from config import ADMIN_ID
 
-# نمایش پنل اصلی
 async def panel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
-        await update.message.reply_text("⛔️ شما دسترسی ندارید.")
+        await update.message.reply_text("⛔️ دسترسی ندارید.")
         return
 
     keyboard = [
@@ -18,7 +15,6 @@ async def panel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     reply_markup = InlineKeyboardMarkup(keyboard)
     await update.message.reply_text("🎛 لطفاً مانیتور مورد نظر را انتخاب کنید:", reply_markup=reply_markup)
 
-# هندل کلیک دکمه‌ها
 async def panel_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
@@ -28,26 +24,10 @@ async def panel_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
         kind = data.split("_")[1]
         await send_subpanel(query, kind)
     elif data == "panel":
-        # بازگشت به پنل اصلی
-        await query.edit_message_text("🎛 لطفاً مانیتور مورد نظر را انتخاب کنید:", reply_markup=get_main_panel())
+        await panel_handler(update, context)
 
-# کیبورد اصلی پنل
-def get_main_panel():
-    keyboard = [
-        [InlineKeyboardButton("📶 مانیتور پینگ", callback_data="monitor_ping")],
-        [InlineKeyboardButton("📊 مانیتور ترافیک", callback_data="monitor_traffic")],
-        [InlineKeyboardButton("📡 مانیتور پهنای باند", callback_data="monitor_bandwidth")],
-    ]
-    return InlineKeyboardMarkup(keyboard)
-
-# زیرپنل‌ها برای هر نوع مانیتور
 async def send_subpanel(query, kind):
-    title_map = {
-        "ping": "پینگ",
-        "traffic": "ترافیک",
-        "bandwidth": "پهنای باند"
-    }
-
+    title_map = {"ping": "پینگ", "traffic": "ترافیک", "bandwidth": "پهنای باند"}
     keyboard = [
         [InlineKeyboardButton("➕ افزودن", callback_data=f"{kind}_add")],
         [InlineKeyboardButton("❌ حذف", callback_data=f"{kind}_remove")],
@@ -55,7 +35,4 @@ async def send_subpanel(query, kind):
         [InlineKeyboardButton("🔙 بازگشت", callback_data="panel")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await query.edit_message_text(
-        f"🎛 عملیات مورد نظر برای مانیتور {title_map.get(kind, kind)} را انتخاب کنید:",
-        reply_markup=reply_markup
-    )
+    await query.edit_message_text(f"🎛 عملیات برای مانیتور {title_map.get(kind, kind)}:", reply_markup=reply_markup)
