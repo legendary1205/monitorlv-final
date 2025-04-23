@@ -1,5 +1,3 @@
-# run_all.py
-
 import asyncio
 import threading
 from monitor_loop import monitor_loop
@@ -13,10 +11,9 @@ async def main():
     threading.Thread(target=run_flask, daemon=True).start()
 
     await asyncio.gather(
-        run_bot(),         # اجرای صحیح bot
-        monitor_loop()     # اجرای async مانیتورینگ
+        run_bot(),
+        monitor_loop()
     )
 
 if __name__ == "__main__":
     asyncio.run(main())
-
