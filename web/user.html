@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl" class="bg-sky-50 text-gray-800 dark:bg-gray-900 dark:text-gray-100">
+<head>
+    <meta charset="UTF-8">
+    <title>وضعیت سرورها</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        if (localStorage.getItem("darkMode") === "true") {
+            document.documentElement.classList.add("dark");
+        }
+    </script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="p-6">
+
+    <div class="flex justify-between items-center mb-6">
+        <h1 class="text-2xl font-bold">📡 مانیتورینگ زنده سرورها</h1>
+        <button onclick="toggleDarkMode()" class="px-3 py-1 rounded bg-sky-600 text-white dark:bg-yellow-500">
+            تغییر تم
+        </button>
+    </div>
+
+    <div class="space-y-8">
+        {% for category in ['ping', 'traffic', 'bandwidth'] %}
+            <div>
+                <h2 class="text-xl font-semibold text-sky-700 dark:text-sky-300 mb-2">
+                    📌 مانیتور {{ 'پینگ' if category == 'ping' else 'ترافیک' if category == 'traffic' else 'پهنای باند' }}
+                </h2>
+                <table class="w-full border-collapse bg-white dark:bg-gray-800 rounded shadow">
+                    <thead>
+                        <tr class="bg-sky-600 text-white dark:bg-sky-700">
+                            <th class="p-2">شناسه</th>
+                            <th class="p-2">IP</th>
+                            <th class="p-2">نام</th>
+                            <th class="p-2">وضعیت</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for host in hosts if host.type == category %}
+                        <tr class="border-t border-gray-200 dark:border-gray-700">
+                            <td class="p-2 font-mono text-xs">{{ host.id }}</td>
+                            <td class="p-2">{{ host.ip }}</td>
+                            <td class="p-2">{{ host.hostname }}</td>
+                            <td class="p-2">
+                                {% if host.status == 'فعال' %}
+                                    <span class="text-green-600 font-semibold">فعال</span>
+                                {% elif host.status == 'غیرفعال' %}
+                                    <span class="text-red-600 font-semibold">غیرفعال</span>
+                                {% else %}
+                                    <span class="text-yellow-500 font-semibold">pending</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script>
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle("dark");
+            localStorage.setItem("darkMode", document.documentElement.classList.contains("dark"));
+        }
+    </script>
+</body>
+</html>
