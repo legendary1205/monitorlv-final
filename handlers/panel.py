@@ -4,7 +4,10 @@ from config import ADMIN_ID
 
 async def panel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if update.effective_user.id != ADMIN_ID:
-        await update.message.reply_text("⛔️ دسترسی ندارید.")
+        if update.message:
+            await update.message.reply_text("⛔️ دسترسی ندارید.")
+        elif update.callback_query:
+            await update.callback_query.edit_message_text("⛔️ دسترسی ندارید.")
         return
 
     keyboard = [
@@ -13,7 +16,11 @@ async def panel_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         [InlineKeyboardButton("📡 مانیتور پهنای باند", callback_data="monitor_bandwidth")],
     ]
     reply_markup = InlineKeyboardMarkup(keyboard)
-    await update.message.reply_text("🎛 لطفاً مانیتور مورد نظر را انتخاب کنید:", reply_markup=reply_markup)
+
+    if update.message:
+        await update.message.reply_text("🎛 لطفاً مانیتور مورد نظر را انتخاب کنید:", reply_markup=reply_markup)
+    elif update.callback_query:
+        await update.callback_query.edit_message_text("🎛 لطفاً مانیتور مورد نظر را انتخاب کنید:", reply_markup=reply_markup)
 
 async def panel_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
