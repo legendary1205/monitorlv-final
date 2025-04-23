@@ -10,11 +10,18 @@ from handlers.bandwidth import handle_bandwidth_action, handle_bandwidth_message
 async def run_bot():
     app = Application.builder().token(BOT_TOKEN).build()
 
+    # دستور اصلی
     app.add_handler(CommandHandler("panel", panel_handler))
-    app.add_handler(CallbackQueryHandler(panel_callback))
+
+    # دکمه اصلی پنل
+    app.add_handler(CallbackQueryHandler(panel_callback, pattern="^monitor_|^panel$"))
+
+    # دکمه‌های زیرمجموعه برای پینگ
     app.add_handler(CallbackQueryHandler(handle_ping_action, pattern="^ping_"))
     app.add_handler(CallbackQueryHandler(handle_traffic_action, pattern="^traffic_"))
     app.add_handler(CallbackQueryHandler(handle_bandwidth_action, pattern="^bandwidth_"))
+
+    # پیام‌های متنی برای افزودن/حذف آی‌پی
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_ping_message))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_traffic_message))
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_bandwidth_message))
