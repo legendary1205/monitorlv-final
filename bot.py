@@ -22,4 +22,7 @@ async def run_bot():
     app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_bandwidth_message))
 
     print("🤖 Bot is running...")
-    await app.run_polling()
+
+    await app.initialize()
+    await app.start()
+    await app.updater.start_polling()
