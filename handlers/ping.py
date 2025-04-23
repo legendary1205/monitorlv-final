@@ -1,66 +1,56 @@
-# placeholder for ping.py
 # handlers/ping.py
 
 from telegram import Update
 from telegram.ext import ContextTypes
-from utils.storage import load_hosts, save_hosts, generate_id
+from utils.storage import load_hosts, save_hosts
+import uuid
 
-user_state = {}
+pending_action = {}
 
 async def handle_ping_action(update: Update, context: ContextTypes.DEFAULT_TYPE):
     query = update.callback_query
     await query.answer()
     data = query.data
 
-    if data == "ping_add":
-        user_state[query.from_user.id] = "adding_ping"
-        await query.edit_message_text("لطفاً IP و هاست‌نیم سرور پینگ را وارد کنید:\n`192.168.1.1 Hostname`", parse_mode="Markdown")
-    elif data == "ping_remove":
-        user_state[query.from_user.id] = "removing_ping"
-        await query.edit_message_text("IP و هاست‌نیم سرور مورد نظر برای حذف را وارد کنید:")
-    elif data == "ping_list":
+    user_id = query.from_user.id
+    if data.endswith("_add"):
+        pending_action[user_id] = "add_ping"
+        await query.edit_message_text("🔧 لطفاً IP و هاست نیم را وارد کنید به صورت:\n`192.168.1.1 server1`", parse_mode="Markdown")
+    elif data.endswith("_remove"):
+        pending_action[user_id] = "remove_ping"
+        await query.edit_message_text("🗑 لطفاً IP و هاست نیم را برای حذف وارد کنید:")
+    elif data.endswith("_list"):
         hosts = load_hosts()
-        ping_hosts = [h for h in hosts if h["type"] == "ping"]
-        if not ping_hosts:
-            await query.edit_message_text("⛔️ هیچ سروری برای مانیتور پینگ ثبت نشده.")
-        else:
-            msg = "📋 لیست سرورهای مانیتور پینگ:\n\n"
-            for h in ping_hosts:
-                msg += f"🔹 [{h['id']}] {h['hostname']} - {h['ip']}\n"
-            await query.edit_message_text(msg)
+        text = "📋 لیست سرورهای پینگ:\n"
+        for h in hosts:
+            if h["type"] == "ping":
+                text += f"• `{h['ip']}` ({h['hostname']}) – {h['status']}\n"
+        await query.edit_message_text(text or "هیچ آی‌پی ثبت نشده", parse_mode="Markdown")
 
 async def handle_ping_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    state = user_state.get(user_id)
+    if user_id not in pending_action:
+        return
 
-    if state in ("adding_ping", "removing_ping"):
-        try:
-            ip, hostname = update.message.text.strip().split(maxsplit=1)
-        except:
-            await update.message.reply_text("❌ فرمت اشتباه است. لطفاً به صورت `IP Hostname` ارسال کنید.")
-            return
+    text = update.message.text.strip()
+    parts = text.split()
 
-        hosts = load_hosts()
+    if len(parts) != 2:
+        await update.message.reply_text("❌ فرمت اشتباه است. لطفاً به صورت `IP Hostname` وارد کنید.")
+        return
 
-        if state == "adding_ping":
-            host_id = generate_id()
-            hosts.append({
-                "id": host_id,
-                "ip": ip,
-                "hostname": hostname,
-                "type": "ping",
-                "status": "pending"
-            })
-            save_hosts(hosts)
-            await update.message.reply_text(f"✅ سرور پینگ با شناسه [{host_id}] اضافه شد.")
+    ip, hostname = parts
+    hosts = load_hosts()
 
-        elif state == "removing_ping":
-            original_len = len(hosts)
-            hosts = [h for h in hosts if not (h["ip"] == ip and h["hostname"] == hostname and h["type"] == "ping")]
-            if len(hosts) < original_len:
-                save_hosts(hosts)
-                await update.message.reply_text("✅ سرور حذف شد.")
-            else:
-                await update.message.reply_text("❌ سرور مورد نظر یافت نشد.")
+    if pending_action[user_id] == "add_ping":
+        host_id = str(uuid.uuid4())[:8]
+        hosts.append({"id": host_id, "ip": ip, "hostname": hostname, "type": "ping", "status": "pending"})
+        save_hosts(hosts)
+        await update.message.reply_text(f"✅ سرور {hostname} ({ip}) اضافه شد.")
 
-        user_state[user_id] = None
+    elif pending_action[user_id] == "remove_ping":
+        hosts = [h for h in hosts if not (h["ip"] == ip and h["hostname"] == hostname and h["type"] == "ping")]
+        save_hosts(hosts)
+        await update.message.reply_text(f"🗑 سرور {hostname} ({ip}) حذف شد.")
+
+    del pending_action[user_id]
